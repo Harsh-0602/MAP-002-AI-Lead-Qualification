@@ -1,0 +1,278 @@
+{
+  "name": "MAP-002 | AI Lead Qualification System",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-qualification",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "90f5cbff-87c2-4f02-9977-329f500084f9",
+      "name": "Webhook",
+      "webhookId": "bf168e5b-ff07-4c22-afdc-5de137115bfa"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert B2B SaaS sales assistant.\n\nAnalyze the lead and return ONLY valid JSON.\n\nScoring Rules:\n\n90-100 = Hot Lead\n70-89 = Warm Lead\n0-69 = Cold Lead\n\nConsider:\n- Company size\n- Budget\n- Buying intent\n- Urgency\n- Business relevance\n\nReturn ONLY this JSON:\n\n{\n  \"lead_score\": number,\n  \"category\": \"Hot/Warm/Cold\",\n  \"priority\": \"High/Medium/Low\",\n  \"reason\": \"Short explanation\"\n}",
+              "role": "model"
+            },
+            {
+              "content": "=Name:\n{{ $json.body.name }}\n\nEmail:\n{{ $json.body.email }}\n\nCompany:\n{{ $json.body.company }}\n\nEmployees:\n{{ $json.body.employees }}\n\nBudget:\n{{ $json.body.budget }}\n\nRequirement:\n{{ $json.body.requirement }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "cecb8dc4-a186-43bf-b58e-ae30a9956ce9",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1BFgBMKi5aSD84AV",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const text = $json.content.parts[0].text;\n\n// Gemini kabhi ```json ... ``` bhi bhej deta hai.\n// Isliye cleanup kar rahe hain.\nconst cleaned = text\n  .replace(/```json/g, \"\")\n  .replace(/```/g, \"\")\n  .trim();\n\nconst result = JSON.parse(cleaned);\n\nreturn {\n  json: result\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "756c07bc-2cf9-4147-ab3f-bc0b8f109074",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Lx3yq45ShopkTmpbYaxgFOAlOKpU78rsLT_wSBXctro",
+          "mode": "list",
+          "cachedResultName": "AI Lead Qualification",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Lx3yq45ShopkTmpbYaxgFOAlOKpU78rsLT_wSBXctro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Lx3yq45ShopkTmpbYaxgFOAlOKpU78rsLT_wSBXctro/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{$now}}",
+            "Name": "={{$node[\"Webhook\"].json.body.name}}",
+            "Email": "={{$node[\"Webhook\"].json.body.email}}",
+            "Company": "={{$node[\"Webhook\"].json.body.company}}",
+            "Employees": "={{$node[\"Webhook\"].json.body.employees}}",
+            "Budget": "={{$node[\"Webhook\"].json.body.budget}}",
+            "Requirement": "={{$node[\"Webhook\"].json.body.requirement}}",
+            "Lead Score": "={{$json.lead_score}}",
+            "Category": "={{$json.category}}",
+            "Priority": "={{$json.priority}}",
+            "Reason": "={{$json.reason}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Employees",
+              "displayName": "Employees",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Requirement",
+              "displayName": "Requirement",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        768,
+        0
+      ],
+      "id": "36d160bd-74a6-4f15-9fd4-263f4df2e399",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "MWZiJTDrtGU5w5qf",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "73eec895-0866-4e02-b91f-df2e97cbb05d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fd377f6946cfbc22bc80fa57c311349febc08fb52fe46642401788cafc53b382"
+  },
+  "nodeGroups": [],
+  "id": "MXSuRUmVDi5ECl7G",
+  "tags": []
+}
